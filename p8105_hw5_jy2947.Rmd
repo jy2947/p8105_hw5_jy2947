@@ -13,7 +13,8 @@ library(stringr)
 #### Load and tidy data
 
 ```{r read_data}
-file = as.data.frame(list.files(path = "./data")) %>% 
+
+longi_study = as.data.frame(list.files(path = "./data")) %>% 
   janitor::clean_names() %>% 
   rename(file_name = list_files_path_data)
 
@@ -22,6 +23,42 @@ read_data = function(csv_name){
   read.csv(csv_name)
 }
 
-file = bind_cols(file, map_df(.x = file[[1]], ~read_data(.x)))
+longi_study = 
+  add_column(longi_study, data = map(longi_study[[1]], read_data)) %>% 
+  unnest()
+
+##alternatively the code below give the unnested result directly
+#longi_study = bind_cols(longi_study, map_df(.x = longi_study[[1]], ~read_data(.x)))
 ```
 
+Now tidy the data... a bit
+
+```{r tidy_data}
+longi_study =
+  rename(longi_study, subject = file_name) %>% 
+  mutate(subject = as.character(subject), 
+         subject = str_trunc(subject, 6,  ellipsis = "")) %>% 
+  separate(subject, into = c("group", "id"), remove = FALSE)
+```
+
+Spaghetti plot
+
+```{r plot}
+longi_study %>% 
+  gather(c(week_1:week_8), key = "week", value = "value") %>% 
+  mutate(week = str_trunc(week, side = "left", 1, ellipsis = ""), 
+         week = as.numeric(week)) %>% 
+  ggplot(aes(x = week, y = value)) +
+  geom_line(aes(color = subject), linetype = 1) +
+  geom_smooth(aes(color = group), linetype = 3, se = FALSE) +
+  labs(title = "Observations over time", 
+       x = "Week", 
+       y = "Observation") +
+  theme_classic() 
+
+longi_study %>% 
+  ggplot()
+  
+```
+
+The plot shows that there are some variations within each arm. The overall trend is that the observations of the treatment arm increase over time while the observations of the control arm decrease or remain the same over time. 
