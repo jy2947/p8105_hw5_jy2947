@@ -66,7 +66,7 @@ The plot shows that there are some variations within each arm. The overall trend
 ####Load and tidy data
 ```{r load}
 homi_data = read.csv("./data/problem2/homicide-data.csv") %>% 
-  unite(city, state, col = "city_state", sep = ",")
+  unite(city, state, col = "city_state", sep = ", ")
 
 total_homi =  
   homi_data %>% 
@@ -80,9 +80,42 @@ unsolved_homi =
     group_by(city_state) %>% 
     summarize(unsolved_homicide = n())  
 
-sum_homi = left_join(total_homi, unsolved_homi, by = "city_state")
-sum_homi %>% 
-  replace_na(list(unsolved_homicide = 0)) %>% 
+summarize_homi = 
+  left_join(total_homi, unsolved_homi, by = "city_state") %>% 
+  replace_na(list(unsolved_homicide = 0))
+summarize_homi %>% 
   knitr::kable()
 ```
+
+####Homicide in Baltimore, MD
+```{r testing}
+test_baltimore = 
+  filter(summarize_homi, city_state == "Baltimore, MD") %>% 
+  select(-city_state) %>% 
+  select(unsolved_homicide, homicide)
+
+test_result = prop.test(test_baltimore[[1]], test_baltimore[[2]]) %>% 
+  broom::tidy()
+
+test_result %>% pull(1)
+ci = c(test_result %>% pull(5), test_result %>% pull(6))
+ci
+```
+
+####Homicide across US
+```{r across_us}
+test_function = function(unsolved, total){
+  result = prop.test(unsolved, total) %>% broom::tidy()
+  esti_pro = round(result %>% pull(1), digits = 3)
+  ci_low = round(result %>% pull(5), digits = 3)
+  ci_high = round(result %>% pull(6), digits = 3)
+  tibble(esti_pro, ci_low, ci_high)
+}
+
+homi_us = 
+  bind_rows(map2(.x = summarize_homi[[3]], .y = summarize_homi[[2]], ~test_function(.x, .y))) %>% 
+  mutate(city_state = summarize_homi[[1]]) %>% 
+  select(city_state, esti_pro, ci_low, ci_high)
+```
+
 
