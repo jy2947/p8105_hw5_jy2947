@@ -67,7 +67,11 @@ The plot shows that there are some variations within each arm. The overall trend
 ```{r load}
 homi_data = read.csv("./data/problem2/homicide-data.csv") %>% 
   unite(city, state, col = "city_state", sep = ", ")
+```
 
+The raw data set has `r ncol(homi_data)` columns and `r nrow(homi_data)` observations. Each observation represents a victim in the  homicide. The data lists the homicides across the major cities in U.S, including the date, city and state where each homicide happened (with its coordinates). The data set also includes information about the victims - their name, race, age and gender. The news article is most concerned about whether the homicide has been solved, which is listed as a variable "disposition". 
+
+```{r tidy}
 total_homi =  
   homi_data %>% 
     group_by(city_state) %>% 
@@ -88,6 +92,7 @@ summarize_homi %>%
 ```
 
 ####Homicide in Baltimore, MD
+The following code chunk produces the estimated proportion of unsolved homicide in Baltimore, MD and its confidence interval.  
 ```{r testing}
 test_baltimore = 
   filter(summarize_homi, city_state == "Baltimore, MD") %>% 
@@ -103,6 +108,7 @@ ci
 ```
 
 ####Homicide across US
+Do the testing.  
 ```{r across_us}
 test_function = function(unsolved, total){
   result = prop.test(unsolved, total) %>% broom::tidy()
@@ -113,9 +119,22 @@ test_function = function(unsolved, total){
 }
 
 homi_us = 
-  bind_rows(map2(.x = summarize_homi[[3]], .y = summarize_homi[[2]], ~test_function(.x, .y))) %>% 
+  map2(.x = summarize_homi[[3]], .y = summarize_homi[[2]], ~test_function(.x, .y)) %>%
+  bind_rows() %>% 
   mutate(city_state = summarize_homi[[1]]) %>% 
   select(city_state, esti_pro, ci_low, ci_high)
 ```
 
+Get a plot.  
+```{r plot_us}
+homi_us %>% 
+  ggplot(aes(x = fct_reorder(city_state,esti_pro), y = esti_pro)) +
+    geom_errorbar(aes(ymin = ci_low, ymax = ci_high)) +
+    coord_flip() +
+    labs(title = "Esitmated unsolved homicide proportions in the US with confidence intervals", 
+         x = "City", 
+         y = "Esitmated unsolved homicide proportion") +
+    theme_classic()
+```
 
+The plot shows Chicago, IL has the highest estimated unsolved homicide proportions, followed by New Orleans, LA and Baltimore, MD. 
