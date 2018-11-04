@@ -137,6 +137,7 @@ Get a plot.
 ```{r plot_us}
 homi_us %>% 
   ggplot(aes(x = fct_reorder(city_state,esti_pro), y = esti_pro)) +
+    geom_point() +
     geom_errorbar(aes(ymin = ci_low, ymax = ci_high)) +
     coord_flip() +
     labs(title = "Esitmated unsolved homicide proportions in the US with confidence intervals", 
