@@ -6,4 +6,22 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stringr)
 ```
+
+#### Load and tidy data
+
+```{r read_data}
+file = as.data.frame(list.files(path = "./data")) %>% 
+  janitor::clean_names() %>% 
+  rename(file_name = list_files_path_data)
+
+read_data = function(csv_name){
+  csv_name = str_c("./data/", as.character(csv_name))
+  read.csv(csv_name)
+}
+
+file = bind_cols(file, map_df(.x = file[[1]], ~read_data(.x)))
+```
+
