@@ -125,6 +125,14 @@ homi_us =
   select(city_state, esti_pro, ci_low, ci_high)
 ```
 
+```{r set_plot, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.width = 8,
+                      fig.height = 10)
+library(tidyverse)
+```
+
+
 Get a plot.  
 ```{r plot_us}
 homi_us %>% 
