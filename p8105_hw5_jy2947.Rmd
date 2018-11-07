@@ -51,7 +51,7 @@ longi_study %>%
   mutate(week = str_trunc(week, side = "left", 1, ellipsis = ""), 
          week = as.numeric(week)) %>% 
   ggplot(aes(x = week, y = value)) +
-  geom_line(aes(color = subject), linetype = 1) +
+  geom_line(aes(color = group, group = subject), linetype = 1) +
   geom_smooth(aes(color = group), linetype = 3, se = FALSE) +
   labs(title = "Observations over time", 
        x = "Week", 
@@ -59,7 +59,7 @@ longi_study %>%
   theme_classic() 
 ```
 
-The plot shows that there are some variations within each arm. The overall trend is that the observations of the treatment arm increase over time while the observations of the control arm decrease or remain the same over time. 
+The plot shows that there are some variations within each arm. The overall trend is that the observations of the treatment arm increase over time while the observations of the control arm decrease or remain the same over time. This corresponds to higher observation values among the experiment group later in the experiment.  
 
 ###Problem 2
 
@@ -129,7 +129,6 @@ homi_us =
 knitr::opts_chunk$set(echo = TRUE, 
                       fig.width = 8,
                       fig.height = 10)
-library(tidyverse)
 ```
 
 
